@@ -11,14 +11,22 @@ import Firebase
 @main
 struct AuthScreenAppApp: App {
     
-    // require to configure the app for firebase
+    @AppStorage("user") private var user: Data?
+    
     init() {
         FirebaseApp.configure()
     }
     
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            ZStack {
+                if let _ = user {
+                    AuthTabView().environmentObject(UserSession())
+                    .accentColor(Color(.systemPurple))
+                } else {
+                    LoginView().environmentObject(UserSession())
+                }
+            }
         }
     }
 }

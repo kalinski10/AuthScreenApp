@@ -10,104 +10,99 @@ import FirebaseAuth
 
 struct LoginView: View {
     
-    @StateObject var viewModel = LoginViewModel()
+    @EnvironmentObject var userSession: UserSession
     
     var body: some View {
-        ZStack {
-            BrandGradient()
+        NavigationView {
+            ZStack {
+                BrandGradient()
 
-            VStack(alignment: .leading) {
-                VStack (alignment: .leading){
-                    Text("Welcome")
-                        .foregroundColor(.secondary)
-                    
-                    Text(viewModel.isSignUp ? "Sign up" : "Sign in")
-                        .foregroundColor(.white)
-                        .bold()
-                        .font(.title)
-                }
-                .padding(50)
-                
-                VStack(spacing: 30) {
-                    if viewModel.isSignUp {
-                        NameItem(name: $viewModel.name)
+                VStack(alignment: .leading) {
+                    VStack (alignment: .leading){
+                        Text("Welcome")
+                            .foregroundColor(.secondary)
+                        
+                        Text(userSession.isSignUp ? "Sign up" : "Sign in")
+                            .foregroundColor(.white)
+                            .bold()
+                            .font(.title)
                     }
+                    .padding(50)
                     
-                    EmailItem(email: $viewModel.email)
-                    
-                    PasswordItem(password: $viewModel.password)
-                    
-                    if !viewModel.isSignUp {
-                        Button {
-                            print("Forgot password")
-                        } label: {
-                            Text("Forget password?")
+                    VStack(spacing: 30) {
+                        if userSession.isSignUp {
+                            NameItem(name: $userSession.name)
+                        }
+                        
+                        EmailItem(email: $userSession.email)
+                        
+                        PasswordItem(password: $userSession.password)
+                        
+                        if !userSession.isSignUp {
+                            Button {
+                                print("Forgot password")
+                            } label: {
+                                Text("Forget password?")
+                                    .foregroundColor(.secondary)
+                                    .fontWeight(.light)
+                            }
+                        }
+                        
+                        Button { userSession.login() }
+                                label: { KBButton(title: userSession.isSignUp ? "Sign up" : "Sign in") }
+                        
+                        OrItem()
+                        
+                        HStack(spacing: 50) {
+                            Image(systemName: "square.and.arrow.up")
                                 .foregroundColor(.secondary)
-                                .fontWeight(.light)
+                            
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.secondary)
+                            
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.secondary)
+                                
                         }
-                    }
-                    
-                    Button { viewModel.login() }
-                        label: {
-                            Text("Sign in")
-                                .bold()
-                                .foregroundColor(.white)
-                                .frame(width: 258, height: 50)
-                                .background(BrandGradient())
-                                .cornerRadius(8)
-                                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 5, y: 5)
-                        }
-                    
-                    OrItem()
-                    
-                    HStack(spacing: 50) {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.secondary)
                         
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.secondary)
+                        Spacer()
                         
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    HStack {
-                        Text(viewModel.isSignUp ? "Already have an account?" : "Don't have an account?")
-                            .foregroundColor(.secondary)
-                        
-                        Button {
-                            withAnimation {
-                                viewModel.isSignUp.toggle()
+                        HStack {
+                            Text(userSession.isSignUp ? "Already have an account?" : "Don't have an account?")
+                                .foregroundColor(.secondary)
+                            
+                            Button {
+                                withAnimation {
+                                    userSession.isSignUp.toggle()
+                                }
                             }
+                                label: {
+                                    Text(userSession.isSignUp ? "Sign in" : "Sign up")
+                                        .bold()
+                                        .foregroundColor(Color(.systemIndigo))
+                                }
                         }
-                            label: {
-                                Text(viewModel.isSignUp ? "Sign in" : "Sign up")
-                                    .bold()
-                                    .foregroundColor(Color(.systemIndigo))
-                            }
+                        .padding()
+                        
                     }
-                    .padding()
-                    
+                    .padding(50)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(20)
+                    .ignoresSafeArea()
                 }
-                .padding(50)
-                .background(Color(.systemBackground))
-                .cornerRadius(20)
-                .ignoresSafeArea()
-            }
-            
-            if viewModel.isLoading {
-                ZStack {
-                    Color.white.opacity(0.6)
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                
+                if userSession.isLoading {
+                    ZStack {
+                        Color.black.opacity(0.6)
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(.systemPurple)))
+                    }
+                    .ignoresSafeArea()
                 }
-                .ignoresSafeArea()
             }
+            .alert(isPresented: $userSession.isSuccessful) {
+                Alert(title: Text("successful login"), message: Text("Congratulations on a succesful login attempt"), dismissButton: .default(Text("ok")))
         }
-        .alert(isPresented: $viewModel.isSuccessful) {
-            Alert(title: Text("successful login"), message: Text("Congratulations on a succesful login attempt"), dismissButton: .default(Text("ok")))
         }
     }
 }
@@ -117,6 +112,8 @@ struct ContentView_Previews: PreviewProvider {
         LoginView()
     }
 }
+
+// MARK: - SubItems
 
 struct NameItem: View {
     @Binding var name: String
